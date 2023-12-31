@@ -46,7 +46,7 @@ NeuroFlex
 │   │   └── README.md
 │   └── papers
 │       └── README.md
-├──neuro_fuzzy.ipynb
+├──neuroflex.ipynb
 ├── requirements.txt
 └── src
     ├── README.md
