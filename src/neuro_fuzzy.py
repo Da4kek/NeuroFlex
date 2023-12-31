@@ -1,68 +1,74 @@
-import numpy as np 
-import skfuzzy as fuzz 
-import matplotlib.pyplot as plt
-
-class Architecture():
-    def __init__(self,input_size,
-                 output_size,
-                 num_layers, 
-                 num_neurons):
-        self.input_size = input_size
-        self.output_size = output_size
-        self.num_layers = num_layers
-        self.num_neurons = num_neurons
-        self.layers = []
-        for _ in range(num_layers):
-            weights = np.random.rand(input_size,num_neurons)
-            biases = np.zeros((1,num_neurons))
-            self.layers.append({'weights':weights,'biases':biases})
-            input_size = num_neurons
-        
-        weights_output = np.random.rand(num_neurons,output_size)
-        biases_output = np.zeros((1,output_size))
-        self.layers.append({'weights':weights_output,'biases':biases_output})
-    
-    def forward_(self,inputs):
-        output = inputs 
-        for layer in self.layers:
-            output = self.sigmoid(
-                np.dot(output, layer['weights']) + layer['biases'])
-        return output 
-    
-    def sigmoid(self,x):
-        return 1/ (1+ np.exp(-x))
+import numpy as np
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.datasets import mnist
+from sklearn.metrics import accuracy_score
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import Callback
 
 
 class NeuroGenesis:
-    def __init__(self, neuro_architecture, max_neurons):
-        self.neuro_architecture = neuro_architecture
+    def __init__(self, architecture, max_neurons, threshold_epochs):
+        self.architecture = architecture
         self.max_neurons = max_neurons
+        self.threshold_epochs = threshold_epochs
+        self.consecutive_epochs_no_improvement = 0
 
-    def trigger(self):
-        if self.neuro_architecture.num_neurons > 1:
-            neuron_to_replace = np.random.randint(
-                self.neuro_architecture.num_neurons)
+    def trigger(self, current_epoch, current_accuracy, previous_accuracy):
+        # Check if accuracy has not improved for consecutive epochs
+        if current_accuracy <= previous_accuracy:
+            self.consecutive_epochs_no_improvement += 1
+        else:
+            self.consecutive_epochs_no_improvement = 0
 
-            self.neuro_architecture.layers[-2]['weights'][neuron_to_replace, :] = np.random.rand(
-                1, self.neuro_architecture.layers[-2]['weights'].shape[1])
-            self.neuro_architecture.layers[-2]['biases'][neuron_to_replace] = 0.0
+        # Trigger neurogenesis if the threshold is reached
+        if self.consecutive_epochs_no_improvement >= self.threshold_epochs:
+            self.consecutive_epochs_no_improvement = 0
+            self.neurogenesis()
+
+    def neurogenesis(self):
+        if self.architecture.num_neurons < self.max_neurons:
+            new_lstm_cell = LSTM(self.architecture.num_neurons, input_shape=(
+                1, self.architecture.input_size), return_sequences=True)
+            self.architecture.model.add(new_lstm_cell)
+            self.architecture.num_neurons += 1
 
 
-input_size = 10 
-output_size = 10
-num_layers = 3 
-num_neurons = 5 
-max_neurons = 10
-architecture =  Architecture(input_size,output_size,num_layers,num_neurons)
-inputs = np.random.rand(1, input_size)
-output = architecture.forward_(inputs)
-print("Output before neurogenesis:")
-print(output)
+class NeuroFuzzyNetwork:
+    def __init__(self, input_size, output_size, num_rules, num_neurons):
+        self.input_size = input_size
+        self.output_size = output_size
+        self.num_rules = num_rules
+        self.num_neurons = num_neurons
+        self.model = self.build_model()
+        self.previous_accuracy = None  # Store previous accuracy
 
-neurogenesis = NeuroGenesis(architecture,max_neurons)
-neurogenesis.trigger()
+    def build_model(self):
+        model = Sequential()
+        model.add(LSTM(self.num_neurons, input_shape=(1, self.input_size)))
+        model.add(Dense(self.output_size, activation='softmax'))
+        model.compile(optimizer=Adam(),
+                      loss='categorical_crossentropy', metrics=['accuracy'])
+        return model
 
-output_ = architecture.forward_(inputs)
-print("Output after neurogenesis:")
-print(output_)
+    def train(self, X_train, y_train, epochs=10, batch_size=32):
+        for epoch in range(epochs):
+            history = self.model.fit(
+                X_train, y_train, epochs=1, batch_size=batch_size, verbose=0)
+            current_accuracy = history.history['accuracy'][0]
 
+            if epoch > 0 and self.previous_accuracy is not None:
+                previous_accuracy = self.previous_accuracy
+                NeuroGenesis(self, max_neurons, threshold_epochs).trigger(
+                    epoch, current_accuracy, previous_accuracy)
+
+            self.previous_accuracy = current_accuracy
+
+    def predict(self, X_test):
+        return self.model.predict(X_test)
+
+
+class PreviousAccuracyCallback(Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        self.model.previous_accuracy = logs.get('accuracy')
