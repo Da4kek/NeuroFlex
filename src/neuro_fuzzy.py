@@ -51,20 +51,22 @@ class NeuroFuzzyNetwork_:
         return model
 
     def train(self, X_train, y_train, epochs=10, batch_size=32):
-        neurogenesis = NeuroGenesis_(
-            self, self.max_neurons, self.threshold_epochs)
+        history_list = []  # List to store history for each epoch
         for epoch in range(epochs):
-            self.model.reset_states()  
             history = self.model.fit(
                 X_train, y_train, epochs=1, batch_size=batch_size, verbose=0)
+            history_list.append(history.history)
             current_accuracy = history.history['accuracy'][0]
 
             if epoch > 0 and self.previous_accuracy is not None:
                 previous_accuracy = self.previous_accuracy
-                neurogenesis.trigger(
+                NeuroGenesis_(self, self.max_neurons, self.threshold_epochs).trigger(
                     epoch, current_accuracy, previous_accuracy)
 
             self.previous_accuracy = current_accuracy
+
+        return history_list
+
 
     def predict(self, X_test):
         return self.model.predict(X_test)

@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt 
 import numpy as np
 from sklearn.metrics import confusion_matrix
@@ -34,4 +35,31 @@ def pred_plot(X_test,y_true,y_pred,num_dig=4):
         axes[i].set_title(f"True:{y_true[i]} Pred:{y_pred[i]}")
         axes[i].axis('off')
     plt.show()
-    
+
+
+def convert_history_to_dict(history_list):
+    history_dict = {
+        'loss': np.array([value['loss'][0] for value in history_list]),
+        'accuracy': np.array([value['accuracy'][0] for value in history_list]),
+    }
+    return history_dict
+
+
+def plot_metrics(history, title):
+    epochs = range(1, len(history['accuracy']) + 1)
+
+    plt.figure(figsize=(12, 4))
+    plt.plot(epochs, history['accuracy'], marker='o',
+             linestyle='-', color='b', label='Accuracy')
+    plt.plot(epochs, history['loss'], marker='o',
+             linestyle='-', color='r', label='Loss')
+    plt.title(title + ' - acc vs loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.show()
+
+
+
+
+
