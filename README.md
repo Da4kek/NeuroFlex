@@ -51,7 +51,7 @@ NeuroFlex
 └── src
     ├── README.md
     ├── neuro_fuzzy.py
-    └── neuro_fuzzy_lstm.py
+    └── neuro_fuzzy_lstms.py
 ``` 
 
 ## Collaborators:
