@@ -16,13 +16,10 @@ class NeuroGenesis:
         self.consecutive_epochs_no_improvement = 0
 
     def trigger(self, current_epoch, current_accuracy, previous_accuracy):
-        # Check if accuracy has not improved for consecutive epochs
         if current_accuracy <= previous_accuracy:
             self.consecutive_epochs_no_improvement += 1
         else:
             self.consecutive_epochs_no_improvement = 0
-
-        # Trigger neurogenesis if the threshold is reached
         if self.consecutive_epochs_no_improvement >= self.threshold_epochs:
             self.consecutive_epochs_no_improvement = 0
             self.neurogenesis()
@@ -36,13 +33,15 @@ class NeuroGenesis:
 
 
 class NeuroFuzzyNetwork:
-    def __init__(self, input_size, output_size, num_rules, num_neurons):
+    def __init__(self, input_size, output_size, num_rules, num_neurons,max_neurons, threshold_epochs):
         self.input_size = input_size
         self.output_size = output_size
         self.num_rules = num_rules
         self.num_neurons = num_neurons
         self.model = self.build_model()
-        self.previous_accuracy = None  # Store previous accuracy
+        self.previous_accuracy = None  
+        self.max_neurons = max_neurons
+        self.threshold_epochs = threshold_epochs
 
     def build_model(self):
         model = Sequential()
@@ -60,7 +59,7 @@ class NeuroFuzzyNetwork:
 
             if epoch > 0 and self.previous_accuracy is not None:
                 previous_accuracy = self.previous_accuracy
-                NeuroGenesis(self, max_neurons, threshold_epochs).trigger(
+                NeuroGenesis(self, self.max_neurons, self.threshold_epochs).trigger(
                     epoch, current_accuracy, previous_accuracy)
 
             self.previous_accuracy = current_accuracy
