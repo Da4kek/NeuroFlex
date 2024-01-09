@@ -5,6 +5,8 @@ from tensorflow.keras.datasets import mnist
 from sklearn.metrics import accuracy_score
 import time  
 import numpy as np 
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM, Dropout, Activation, Flatten
 
 
 def load_mnist():
@@ -56,3 +58,17 @@ def without_lstm():
 
     acc = accuracy_score(np.argmax(y_test, axis=1), np.argmax(pred, axis=1))
     return architecture_without, acc, end_time - start_time, history_without_lstm
+
+def normal():
+    X_train,y_train,X_test,y_test = load_mnist()
+    model = Sequential()
+    model.add(Dense(128,activation='relu',input_shape=(784,)))
+    model.add(Dense(64,activation='relu'))
+    model.add(Dense(10,activation='softmax'))
+    model.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['accuracy'])
+    history = model.fit(X_train,y_train,epochs=10,validation_data=(X_test,y_test))
+    start_time = time.time()
+    pred = model.predict(X_test)
+    end_time = time.time()
+    acc = accuracy_score(np.argmax(y_test,axis=1),np.argmax(pred,axis=1))
+    return model,acc,end_time-start_time,history.history
