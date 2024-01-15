@@ -71,3 +71,6 @@ def normal():
     end_time = time.time()
     acc = accuracy_score(np.argmax(y_test,axis=1),np.argmax(pred,axis=1))
     return model,acc,end_time-start_time,history
+
+
+
