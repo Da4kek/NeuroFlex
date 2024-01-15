@@ -51,7 +51,7 @@ class NeuroFuzzyNetwork_:
         return model
 
     def train(self, X_train, y_train, epochs=10, batch_size=32):
-        history_list = []  # List to store history for each epoch
+        history_list = []  
         for epoch in range(epochs):
             history = self.model.fit(
                 X_train, y_train, epochs=1, batch_size=batch_size, verbose=0)
