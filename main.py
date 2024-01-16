@@ -6,7 +6,8 @@ from sklearn.metrics import accuracy_score
 import time  
 import numpy as np 
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, LSTM, Dropout, Activation, Flatten
+from tensorflow.keras.layers import Dense
+import tensorflow as tf 
 
 
 def load_mnist():
