@@ -1,7 +1,5 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.datasets import mnist
-from sklearn.metrics import accuracy_score
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM
 from tensorflow.keras.optimizers import Adam
@@ -32,6 +30,37 @@ class NeuroGenesis:
             self.architecture.num_neurons += 1
 
 
+class NeuroFuzzyLogic:
+    @staticmethod
+    def fuzzy_sets(x):
+        if x < 0.2:
+            return "low"
+        elif 0.3 <= x < 0.6:
+            return "medium"
+        else:
+            return "high"
+
+    @staticmethod
+    def defuzzify(outputs):
+       
+        sentiments = {"low": 0, "medium": 0, "high": 0}
+        for i, output in enumerate(outputs):
+            sentiment = fuzzy_sets(i / len(outputs))
+            sentiments[sentiment] += output
+        total = sum(sentiments.values())
+        if total == 0:
+            return "undetermined"
+        low = sentiments["low"] / total
+        medium = sentiments["medium"] / total
+        high = sentiments["high"] / total
+        if low > medium and low > high:
+            return "low"
+        elif medium > low and medium > high:
+            return "medium"
+        else:
+            return "high"
+
+
 class NeuroFuzzyNetwork:
     def __init__(self, input_size, output_size, num_rules, num_neurons, max_neurons, threshold_epochs):
         self.input_size = input_size
@@ -53,7 +82,7 @@ class NeuroFuzzyNetwork:
         return model
 
     def train(self, X_train, y_train, epochs=10, batch_size=32):
-        history_list = []  
+        history_list = []
         for epoch in range(epochs):
             history = self.model.fit(
                 X_train, y_train, epochs=1, batch_size=batch_size, verbose=0)
@@ -72,6 +101,10 @@ class NeuroFuzzyNetwork:
     def predict(self, X_test):
         return self.model.predict(X_test)
 
+    def fuzzy_predict(self, X_test):
+        fuzzy_outputs = self.model.predict(X_test)
+        fuzzy_sentiment = NeuroFuzzyLogic.defuzzify(fuzzy_outputs[0])
+        return fuzzy_sentiment
 
 
 class PreviousAccuracyCallback(Callback):
