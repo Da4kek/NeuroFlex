@@ -31,8 +31,8 @@ class NeuroGenesis:
 
 
 class NeuroFuzzyLogic:
-    @staticmethod
-    def fuzzy_sets(x):
+
+    def fuzzy_sets(self,x):
         if x < 0.2:
             return "low"
         elif 0.3 <= x < 0.6:
@@ -40,12 +40,11 @@ class NeuroFuzzyLogic:
         else:
             return "high"
 
-    @staticmethod
-    def defuzzify(outputs):
+    def defuzzify(self,outputs):
        
         sentiments = {"low": 0, "medium": 0, "high": 0}
         for i, output in enumerate(outputs):
-            sentiment = fuzzy_sets(i / len(outputs))
+            sentiment = self.fuzzy_sets(i / len(outputs))
             sentiments[sentiment] += output
         total = sum(sentiments.values())
         if total == 0:
@@ -103,7 +102,7 @@ class NeuroFuzzyNetwork:
 
     def fuzzy_predict(self, X_test):
         fuzzy_outputs = self.model.predict(X_test)
-        fuzzy_sentiment = NeuroFuzzyLogic.defuzzify(fuzzy_outputs[0])
+        fuzzy_sentiment = NeuroFuzzyLogic.defuzzify(0,fuzzy_outputs[0])
         return fuzzy_sentiment
 
 

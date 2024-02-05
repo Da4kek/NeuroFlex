@@ -36,6 +36,7 @@ def with_lstm():
         X_train_lstm, y_train, epochs=30)
     end_time = time.time()
     pred = architecture_with.predict(X_test_lstm)
+    # pred_neuro = architecture_with.fuzzy_predict(X_test_lstm)
     acc = accuracy_score(np.argmax(y_test, axis=1), np.argmax(pred, axis=1))
     return architecture_with, acc, end_time - start_time, history_with_lstm
 
@@ -65,26 +66,6 @@ def normal():
     model = Sequential()
     model.add(Dense(10,activation='relu',input_shape=(784,)))
     model.add(Dense(10,activation='softmax'))
-    model.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['accuracy'])
-    history = model.fit(X_train,y_train,epochs=20,batch_size=32,verbose=0)
-    start_time = time.time()
-    pred = model.predict(X_test)
-    end_time = time.time()
-    acc = accuracy_score(np.argmax(y_test,axis=1),np.argmax(pred,axis=1))
-    return model,acc,end_time-start_time,history
-
-
-def cnn():
-    X_train,y_train,X_test,y_test = load_mnist()
-    X_train = X_train.reshape((X_train.shape[0],28,28,1))
-    X_test = X_test.reshape((X_test.shape[0],28,28,1))
-    model = Sequential()
-    model.add(tf.keras.layers.Conv2D(32,(3,3),activation='relu',input_shape=(28,28,1)))
-    model.add(tf.keras.layers.MaxPooling2D((2,2)))
-    model.add(tf.keras.layers.Conv2D(64,(3,3),activation='relu'))
-    model.add(tf.keras.layers.Flatten())
-    model.add(tf.keras.layers.Dense(64,activation='relu'))
-    model.add(tf.keras.layers.Dense(10,activation='softmax'))
     model.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['accuracy'])
     history = model.fit(X_train,y_train,epochs=20,batch_size=32,verbose=0)
     start_time = time.time()
