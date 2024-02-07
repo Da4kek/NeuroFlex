@@ -74,7 +74,7 @@ class NeuroFuzzyNetwork:
     def build_model(self):
         model = Sequential()
         model.add(LSTM(self.num_neurons, input_shape=(1, self.input_size)))
-        model.add(Dense(self.num_rules, activation='sigmoid'))
+        # model.add(Dense(self.num_rules, activation='sigmoid'))
         model.add(Dense(self.output_size, activation='softmax'))
         model.compile(optimizer=Adam(),
                       loss='categorical_crossentropy', metrics=['accuracy'])
