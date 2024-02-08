@@ -13,51 +13,34 @@ class NeuroGenesis:
         self.threshold_epochs = threshold_epochs
         self.consecutive_epochs_no_improvement = 0
 
-    def trigger(self, current_epoch, current_accuracy, previous_accuracy):
+    def trigger(self, current_epoch, current_accuracy, previous_accuracy, neurofuzzy_probability):
         if current_accuracy <= previous_accuracy:
             self.consecutive_epochs_no_improvement += 1
         else:
             self.consecutive_epochs_no_improvement = 0
+
         if self.consecutive_epochs_no_improvement >= self.threshold_epochs:
             self.consecutive_epochs_no_improvement = 0
-            self.neurogenesis()
+            num_neurons = NeuroFuzzyLogic().select_neurogenesis(neurofuzzy_probability)
+            self.neurogenesis(num_neurons)
 
-    def neurogenesis(self):
+    def neurogenesis(self, num_neurons):
         if self.architecture.num_neurons < self.max_neurons:
-            new_lstm_cell = LSTM(self.architecture.num_neurons, input_shape=(
-                1, self.architecture.input_size), return_sequences=True)
-            self.architecture.model.add(new_lstm_cell)
-            self.architecture.num_neurons += 1
+            for _ in range(num_neurons):
+                new_lstm_cell = LSTM(self.architecture.num_neurons, input_shape=(
+                    1, self.architecture.input_size), return_sequences=True)
+                self.architecture.model.add(new_lstm_cell)
+                self.architecture.num_neurons += 1
 
 
 class NeuroFuzzyLogic:
-
-    def fuzzy_sets(self,x):
-        if x < 0.2:
-            return "low"
-        elif 0.3 <= x < 0.6:
-            return "medium"
+    def select_neurogenesis(self, neurofuzzy_probability):
+        if neurofuzzy_probability <= 0.33:
+            return 1 if np.random.rand() < 0.5 else 2
+        elif 0.33 < neurofuzzy_probability <= 0.66:
+            return np.random.choice([3, 4])
         else:
-            return "high"
-
-    def defuzzify(self,outputs):
-       
-        sentiments = {"low": 0, "medium": 0, "high": 0}
-        for i, output in enumerate(outputs):
-            sentiment = self.fuzzy_sets(i / len(outputs))
-            sentiments[sentiment] += output
-        total = sum(sentiments.values())
-        if total == 0:
-            return "undetermined"
-        low = sentiments["low"] / total
-        medium = sentiments["medium"] / total
-        high = sentiments["high"] / total
-        if low > medium and low > high:
-            return "low"
-        elif medium > low and medium > high:
-            return "medium"
-        else:
-            return "high"
+            return np.random.choice([5, 6])
 
 
 class NeuroFuzzyNetwork:
@@ -70,11 +53,12 @@ class NeuroFuzzyNetwork:
         self.previous_accuracy = None
         self.max_neurons = max_neurons
         self.threshold_epochs = threshold_epochs
+        self.neurofuzzy_probability = 0.5
 
     def build_model(self):
         model = Sequential()
         model.add(LSTM(self.num_neurons, input_shape=(1, self.input_size)))
-        # model.add(Dense(self.num_rules, activation='sigmoid'))
+        model.add(Dense(self.num_rules, activation='sigmoid'))
         model.add(Dense(self.output_size, activation='softmax'))
         model.compile(optimizer=Adam(),
                       loss='categorical_crossentropy', metrics=['accuracy'])
@@ -91,7 +75,7 @@ class NeuroFuzzyNetwork:
             if epoch > 0 and self.previous_accuracy is not None:
                 previous_accuracy = self.previous_accuracy
                 NeuroGenesis(self, self.max_neurons, self.threshold_epochs).trigger(
-                    epoch, current_accuracy, previous_accuracy)
+                    epoch, current_accuracy, previous_accuracy, self.neurofuzzy_probability)
 
             self.previous_accuracy = current_accuracy
 
@@ -100,10 +84,8 @@ class NeuroFuzzyNetwork:
     def predict(self, X_test):
         return self.model.predict(X_test)
 
-    def fuzzy_predict(self, X_test):
-        fuzzy_outputs = self.model.predict(X_test)
-        fuzzy_sentiment = NeuroFuzzyLogic.defuzzify(0,fuzzy_outputs[0])
-        return fuzzy_sentiment
+    def set_neurofuzzy_probability(self, probability):
+        self.neurofuzzy_probability = probability
 
 
 class PreviousAccuracyCallback(Callback):
